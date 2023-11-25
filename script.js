@@ -1,3 +1,6 @@
+const keyLS = 'to-do list';
+let listTaskLS = [];
+
 class ToDoListContainer {
 
     createdElmDiv (classNameString) {
@@ -13,7 +16,8 @@ class ToDoListContainer {
         const newItem = taskList.createdElmTask("task", "text", valueElement, "disabled");
         newTask.appendChild(newItem);
         //сохранение в LS
-        taskList.saveData(valueElement);
+        listTaskLS.push(valueElement);
+        taskList.saveData(keyLS, listTaskLS);
 
         //создание кнопок управления
         const nameTaskNow = newItem.value;
@@ -33,6 +37,7 @@ class ToDoListContainer {
         const newIcons_delete = controlButtons.createdElmImg("../to-do list/img/delete.png", "delete", newItem, newTask, controlButtons);
         newTask.appendChild(newIcons_delete);
     }
+
 }
 
 class TaskList {
@@ -47,8 +52,8 @@ class TaskList {
         return task;
     }
 
-    saveData (data) {
-        localStorage.setItem(data, data);
+    saveData (key, arrLS) {
+        localStorage.setItem(key, JSON.stringify(arrLS));
     }
 }
 
@@ -96,7 +101,7 @@ class ControlButtons {
         icons_save.addEventListener('click', () => {
             if (this.name !== this.newName) {
                 console.log('зашли в save');
-                controlButtons.changeName(this.name, this.newName);
+                controlButtons.changeName(listTaskLS, this.name, this.newName);
                 newItem.value = this.newName;
                 this.name = this.newName;
             }
@@ -118,37 +123,43 @@ class ControlButtons {
     deleteText (icons_delete, newTask, newItem, controlButtons) {
         icons_delete.addEventListener('click', () => {
             newTask.remove();
-            controlButtons.deleteTask(newItem.value);
+            controlButtons.deleteTask(listTaskLS, newItem.value);
         });
     }
 
-    deleteTask(nameTask) {
-        for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key === nameTask) {
-                localStorage.removeItem(key);
+    deleteTask(arrLS, nameTask) {
+        console.log('listTaskLS 1: ', listTaskLS);
+        const newListTaskLS = [];
+        arrLS.forEach(element => {
+            if(element !== nameTask) {
+                newListTaskLS.push(element);
             }
-        }
+        });
+        localStorage.setItem(keyLS, JSON.stringify(newListTaskLS));
+        listTaskLS = newListTaskLS;
+        console.log('listTaskLS 2: ', listTaskLS);
     }
 
-    changeName(nameTask, newName) {
-        for(let i=0; i<localStorage.length; i++) {
-            let key = localStorage.key(i);
-            if (key === nameTask) {
-                localStorage.removeItem(key);
-                localStorage.setItem(newName, newName);
+    changeName(arrLS, nameTask, newName) {
+        arrLS.forEach((element, i)=> {
+            if (element === nameTask) {
+                arrLS[i] = newName;
             }
-        }
+        });
+        localStorage.setItem(keyLS, JSON.stringify(arrLS));
     }
 }
 
 function showTask (listTasks) {
-    for(let i=0; i<localStorage.length; i++) {
-        let key = localStorage.key(i);
-        const toDoList = new ToDoListContainer("taskText");
-        const newTask = toDoList.createdElmDiv("taskText");
-        listTasks.appendChild(newTask);
-        toDoList.callingToCreateASheet(localStorage.getItem(key), newTask);
+    const localStorage_arr = JSON.parse(localStorage.getItem(keyLS));
+    console.log(localStorage_arr);
+    if (!!localStorage_arr) {
+        for(let i=0; i<localStorage_arr.length; i++) {
+            const toDoList = new ToDoListContainer("taskText");
+            const newTask = toDoList.createdElmDiv("taskText");
+            listTasks.appendChild(newTask);
+            toDoList.callingToCreateASheet(localStorage_arr[i], newTask);
+        };
     }
 }
 
