@@ -22,19 +22,19 @@ class ToDoListContainer {
         //создание кнопок управления
         const nameTaskNow = newItem.value;
         const controlButtons = new ControlButtons(nameTaskNow);
-        const newIcons_edit = controlButtons.createdElmImg("../to-do list/img/edit.png", "edit", newItem, newTask, controlButtons);
+        const newIcons_edit = controlButtons.createdElmImg("../to-do_list_class/img/edit.png", "edit", newItem, newTask, controlButtons);
         newTask.appendChild(newIcons_edit);
 
         
-        const newIcons_save = controlButtons.createdElmImg("../to-do list/img/save.png", "save", newItem, newTask, controlButtons);
+        const newIcons_save = controlButtons.createdElmImg("../to-do_list_class/img/save.png", "save", newItem, newTask, controlButtons);
         newTask.appendChild(newIcons_save);
 
         
-        const newIcons_ready = controlButtons.createdElmImg("../to-do list/img/task_icon.png", "completed", newItem, newTask, controlButtons);
+        const newIcons_ready = controlButtons.createdElmImg("../to-do_list_class/img/task_icon.png", "completed", newItem, newTask, controlButtons);
         newTask.appendChild(newIcons_ready);
 
         
-        const newIcons_delete = controlButtons.createdElmImg("../to-do list/img/delete.png", "delete", newItem, newTask, controlButtons);
+        const newIcons_delete = controlButtons.createdElmImg("../to-do_list_class/img/delete.png", "delete", newItem, newTask, controlButtons);
         newTask.appendChild(newIcons_delete);
     }
 
@@ -67,17 +67,19 @@ class ControlButtons {
     createdElmImg (path, typeButton, item, task, controlButtons) {
         const img = document.createElement("img");
         img.src = path;
-        if (typeButton === "edit") {//переделать на switch/case
-            img.onclick = this.editText(img, item);
-        }
-        else if (typeButton === "save") {
-            img.onclick = this.saveText(img, item, controlButtons);
-        } 
-        else if (typeButton === "completed") {
-            img.onclick = this.crossOutText(img, item);
-        }
-        else if (typeButton === "delete") {
-            img.onclick = this.deleteText(img, task, item, controlButtons);
+        switch(typeButton){
+            case 'edit': 
+                img.onclick = this.editText(img, item);
+                break;
+            case 'save':
+                img.onclick = this.saveText(img, item, controlButtons);
+                break;
+            case 'completed':
+                img.onclick = this.crossOutText(img, item);
+                break;
+            case 'delete':
+                img.onclick = this.deleteText(img, task, item, controlButtons);
+                break;
         }
 
         return img;
@@ -92,15 +94,12 @@ class ControlButtons {
         newItem.addEventListener('blur', () => {
             this.newName = newItem.value;
             newItem.value = this.name;
-            console.log('blur this: ', this.newName);
-            console.log('blur: ', newItem.value);
         });
     }
 
     saveText (icons_save, newItem, controlButtons) {
         icons_save.addEventListener('click', () => {
             if (this.name !== this.newName) {
-                console.log('зашли в save');
                 controlButtons.changeName(listTaskLS, this.name, this.newName);
                 newItem.value = this.newName;
                 this.name = this.newName;
@@ -128,7 +127,6 @@ class ControlButtons {
     }
 
     deleteTask(arrLS, nameTask) {
-        console.log('listTaskLS 1: ', listTaskLS);
         const newListTaskLS = [];
         arrLS.forEach(element => {
             if(element !== nameTask) {
@@ -137,7 +135,6 @@ class ControlButtons {
         });
         localStorage.setItem(keyLS, JSON.stringify(newListTaskLS));
         listTaskLS = newListTaskLS;
-        console.log('listTaskLS 2: ', listTaskLS);
     }
 
     changeName(arrLS, nameTask, newName) {
@@ -150,15 +147,31 @@ class ControlButtons {
     }
 }
 
+function EventListener (inputElement, listTasks) {
+    if (inputElement.value === "") {
+        inputElement.style.borderColor = "#800000";
+        alert("You didn't fill in this field!");
+    } 
+    else {
+        //контейнер для текста
+        const toDoList = new ToDoListContainer("taskText");
+        const newTask = toDoList.createdElmDiv("taskText");
+        listTasks.appendChild(newTask);
+        toDoList.callingToCreateASheet(inputElement.value, newTask);
+    }
+
+    //отчистим input
+    inputElement.value = "";
+}
+
 function showTask (listTasks) {
-    const localStorage_arr = JSON.parse(localStorage.getItem(keyLS));
-    console.log(localStorage_arr);
-    if (!!localStorage_arr) {
-        for(let i=0; i<localStorage_arr.length; i++) {
+    const localStorageArr = JSON.parse(localStorage.getItem(keyLS));
+    if (!!localStorageArr) {
+        for(let i=0; i<localStorageArr.length; i++) {
             const toDoList = new ToDoListContainer("taskText");
             const newTask = toDoList.createdElmDiv("taskText");
             listTasks.appendChild(newTask);
-            toDoList.callingToCreateASheet(localStorage_arr[i], newTask);
+            toDoList.callingToCreateASheet(localStorageArr[i], newTask);
         };
     }
 }
@@ -172,36 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
     showTask(listTasks);
 
     buttonElement.addEventListener("click", () => {
-        if (inputElement.value === "") {
-            inputElement.style.borderColor = "#800000";
-            alert("You didn't fill in this field!");
-        } 
-        else {
-            //контейнер для текста
-            const toDoList = new ToDoListContainer("taskText");
-            const newTask = toDoList.createdElmDiv("taskText");
-            listTasks.appendChild(newTask);
-            toDoList.callingToCreateASheet(inputElement.value, newTask);
-        }
-
-        //отчистим input
-        inputElement.value = "";
+        EventListener(inputElement, listTasks)
     });
 
     buttonElement.removeEventListener("click", () => {
-        if (inputElement.value === "") {
-            inputElement.style.borderColor = "#800000";
-            alert("You didn't fill in this field!");
-        } 
-        else {
-            //контейнер для текста
-            const toDoList = new ToDoListContainer("taskText");
-            const newTask = toDoList.createdElmDiv("taskText");
-            listTasks.appendChild(newTask);
-            toDoList.callingToCreateASheet(inputElement.value, newTask);
-        }
-
-        //отчистим input
-        inputElement.value = "";
+        EventListener(inputElement, listTasks)
     });
 });
